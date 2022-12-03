@@ -1,0 +1,51 @@
+
+.axis-grid line {
+    stroke: #def;
+}
+tr > td:nth-child(1) {
+    float: right;
+}
+
+.TSNE0 {
+    fill: yellow;
+    background-color: yellow;
+    color: black;
+}
+
+.UMAP0 {
+    fill: #9d81ba;
+    background-color: #9d81ba;
+}
+
+.TSNE1 {
+    fill: #880009;
+    background-color: #880009;
+    color: black;
+}
+
+.UMAP1 {
+    fill: #a8d6c2;
+    background-color: #a8d6c2;
+}
+
+.TSNE2 {
+    fill: #073763;
+    background-color: #073763;
+    color: black;
+}
+
+.UMAP2 {
+    fill: #89cff0;
+    background-color: #89cff0;
+}
+
+.centroid {
+    stroke-width:3;
+    stroke:black;
+    fill:orange;
+}
+
+.link {
+    stroke-width:5;
+    stroke:black;
+}

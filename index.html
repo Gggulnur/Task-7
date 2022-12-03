@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Comparison</title>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.6.1/d3.min.js" integrity="sha512-MefNfAGJ/pEy89xLOFs3V6pYPs6AmUhXJrRlydI/9wZuGrqxmrdQ80zKHUcyadAcpH67teDZcBeS6oMJLPtTqw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+        <script>   
+            async function JSON_reader (){
+                const data = await d3.json("spacearxiv.json");
+                const fullD = [];
+                d = [];
+                data_l = ['abstract', 'authors', 'categories', 'date_publ', 'title', 'url', 'url_pdf']
+                // fullD = [];
+                for (var j in data_l){
+                    let l = data_l[j]
+                    d = [];
+                    for(var i in data[l]){
+                        d.push([i, data[l][i]]);
+                    }
+                    fullD.push(d);
+                }
+                return fullD;
+            }
+
+            var dates_arc = [];
+            async function StartingFunc () {
+                d = await JSON_reader();
+                // console.log(d);
+                var years = [];
+                var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec'];
+                var revised = [];
+                for(i in d[3]){
+                    let element = d[3][i];
+                    maxy = 2000;
+                    if (element[1].indexOf(',') > 1){
+                        revised.push(element[1]);
+                        let date = element[1].split(',')[0].slice(0, -5);
+                        let year = date.split(' ')[2];
+                        dates_arc.push(date.split(' ').reverse().join(' '));
+                        if (!years.includes(year)){
+                            years.push(year);
+                        }
+                    } else {
+                        let date = element[1].split(',')[0];
+                        let year = date.split(' ')[2];
+                        dates_arc.push(date.split(' ').reverse().join(' '));
+                        if (!years.includes(year)){
+                            years.push(year);
+                        }
+                    }
+                }
+                years.sort();
+                dates_arc.sort();
+ 
+
+                for(let i in years){
+                    var m = d3.select('main').append('div').attr('class', 'years');
+                    m.append('div').text(years[i]);
+                    // .append('h2')
+                }
+
+                for(let i in months){
+                    d3.select('main')
+                    .selectAll('div.years')
+                    .append('div')
+                    .attr('class', 'months')
+                    .append('span')
+                    .text(months[i]);
+                }
+
+                var divM = d3.selectAll('.months').append('div');
+                
+                for (i=0;i<6;i++){
+                    divM.append('div').attr('class', 'week');
+                }
+
+                for (i=0;i<7;i++){
+                    d3.selectAll('.week')
+                    .append('div').attr('class','day');
+                }
+                
+                allDates = DatesCrawl(1994, 1995);
+                var options = {weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' };
+                var month = document.querySelector('.months');
+                
+                let fd = allDates[0].toLocaleDateString("en-GB", options).split(',')[0]; 
+                let startingP = 0;
+                console.log(fd);
+                if(fd == 'Mon'){
+                    startingP = 0;
+                }else if(fd == 'Tue'){
+                    startingP = 1;
+                }else if(fd == 'Wed'){
+                    startingP = 2;
+                }else if(fd == 'Thu'){
+                    startingP = 3;
+                }else if(fd == 'Fri'){
+                    startingP = 4;
+                }else if(fd == 'Sat'){
+                    startingP = 5;
+                }else if(fd == 'Sun'){
+                    startingP = 6;
+                }
+                // console.log(allDates[0].toLocaleDateString("en-GB", options).indexOf(month.children[0].textContent));
+                document.querySelectorAll('.months').forEach(element=> {
+                    allDates = DatesCrawl(parseInt(element.parentNode.children[0].textContent), parseInt(element.parentNode.children[0].textContent) + 1);
+                    for( i in allDates){
+                        // if (i > 50) {
+                        //     break;
+                        // }
+                        day = allDates[i].toLocaleDateString("en-GB", options);
+                        // console.log(element.children[0].textContent + ' ' + element.parentNode.children[0].textContent);
+                        if(day.indexOf(element.children[0].textContent + ' ' + element.parentNode.children[0].textContent) > -1){
+                            wd = day.split(','); 
+                            da = wd[1].split(' ');
+                            days = element.querySelectorAll('.day');
+                            // j = startingP;
+                            days[startingP + parseInt(da[1]) - 1].textContent = da[1];
+                            days[startingP + parseInt(da[1]) - 1].addEventListener('click', function(){
+                                Analysis(this);
+                            })
+                        }
+                    }
+                });
+            }
+
+            function Analysis (el) {
+                let l_day   = el.textContent;
+                let l_month = el.parentNode.parentNode.parentNode.children[0].textContent;
+                let l_year  = el.parentNode.parentNode.parentNode.parentNode.children[0].textContent;
+
+                if (l_month == 'Sept') {
+                    l_month = 'Sep';
+                }
+
+                document.getElementById('sel_date').textContent = l_day + ' - ' + l_month + ' - ' + l_year;
+                
+                // data_l = ['abstract', 'authors', 'categories', 'date_publ', 'title', 'url', 'url_pdf']
+                
+                var dateDay = [];
+                var dateMonth = [];
+                var indexes = [];
+                var dateRev = [];
+                for (i in d[3]){
+                    if (d[3][i][1].indexOf(l_month + ' ' + l_year) > 0 ){
+                        if (d[3][i][1].indexOf(',') > 0 ){
+                            dateRev.push(d[3][i][1]);
+                        }
+                        indexes.push(i);
+                        dateMonth.push(d[3][i][1]);
+                    }
+                    if (d[3][i][1] == l_day + ' ' + l_month + ' ' + l_year){
+                        dateDay.push(d[3][i][1]);
+                    }
+                } 
+
+                let empty = el.parentNode.parentNode.querySelectorAll(".day:empty").length; 
+                let full = el.parentNode.parentNode.querySelectorAll(".day").length; 
+
+
+                let fields = [];
+                for(let i = 0; i < indexes.length; i++){
+                    let element = d[2][indexes[i]][1];
+                    for (j in element){
+                        if(element[j].indexOf('(') > 0){
+
+                            let el = element[j].slice(0, element[j].indexOf('(') -1).trim(); 
+                            if(!fields.includes(el)){
+                                fields.push(el);
+                            }
+                        }
+                    }
+                }
+ 
+                let fields_s  = "";
+                for (i in fields){
+                    fields_s += fields[i] + ", ";
+                }
+                fields_s.slice(0, fields_s.length-1);
+                // for (i in fields){
+                //     field_n = "";
+                //     for (j in fields[i]){
+                //         field_n = fields[i][1][j];
+                //         console.log(( field_n.indexOf('(')));
+                //         if(field_n.indexOf('(') > 0){
+                //             field_n = field_n.slice(0, field_n.indexOf('(') - 1);
+                //         }
+                //     }
+                //     fields_s += field_n + ', ';
+                // }
+                // fields_s.slice(0, fields_s.length - 1);
+                
+                
+                document.getElementById('pub_art_len_mon').textContent = dateMonth.length
+                document.getElementById('pub_art_len_day').textContent = dateDay.length
+                document.getElementById('pub_art_fld').textContent = fields_s;
+            }
+
+            function DatesCrawl(sDate = 1994, eDate = 2023){
+
+                Date.prototype.addDays = function(days) {
+                    var dat = new Date(this.valueOf())
+                    dat.setDate(dat.getDate() + days);
+                    return dat;
+                }
+
+                function getDates(startDate, stopDate) {
+                    var dateArray = new Array();
+                    var currentDate = startDate;
+                    while (currentDate <= stopDate) {
+                        dateArray.push(currentDate)
+                        currentDate = currentDate.addDays(1);
+                    }
+                    return dateArray;
+                }
+
+                // var dateArray = getDates(new Date('1994 Jan 01'), (new Date('2023 Jan 01')));
+                var allDates = getDates(new Date(sDate.toString()), (new Date(eDate.toString())));
+                return allDates;
+            }
+
+            // console.log(allDates);
+            (async () => {
+                StartingFunc();
+                // var today  = new Date();
+                // console.log(allDates[0].toLocaleDateString("en-GB", options).split(' ').reverse().join(' ').slice(0, -1)); // December 3, 2022
+                // for (i = 0; i < 8; i++){
+                    // }
+                    
+            })();
+        </script>
+        <style>
+            div:empty {
+                display: none;
+            }
+
+            main {
+                
+                overflow: auto;
+                height: 98vh;
+                width: 80vw;
+                background: violet;
+                /* width: 90%; */
+            }
+
+            main span {
+                display: flex;
+                justify-content: center;
+                /* font-weight: bolder; */
+            }
+
+            .years > div:nth-child(1) {
+                font-weight: bolder;
+                margin: auto;
+            }
+
+            .years {
+                display: flex;
+                justify-content: space-around;
+            }
+            
+            .months {
+                margin: 10px;
+                height: 160px;
+                display: block;
+                width: 100%;
+            }
+            
+            .week {
+                display: table-row;
+            }
+
+            .months > div > .week:nth-child(1) {
+                float: right;
+            }
+
+            .day {
+                display: table-cell;
+                border: 1px solid black;
+                height: 20px;
+                width: 16px;
+            }
+            
+            footer {
+                width: 20%;
+            }
+            
+            footer div {
+                position: fixed;
+                /* left: 10px; */
+                width: 18%;
+                margin-left: 1%;
+                height: 90%;
+                background: aliceblue;
+                border: 1px solid black;
+            }
+        </style>
+    </head>
+    <body style="display: flex;">
+        <main>
+        </main>
+        <footer>
+            <div>
+                <table>
+                    <tbody>
+                        <tr>
+                            <td colspan="2"><h2>Analytics</h2></td>
+                        </tr>
+                        <tr>
+                            <td>Selected date : </td>
+                            <td><b id="sel_date"></b></td>
+                        </tr>
+                        <tr>
+                            <td>Published articles in month: </td>
+                            <td id="pub_art_len_mon"></td>
+                        </tr>
+                        <tr>
+                            <td>Published articles in day: </td>
+                            <td id="pub_art_len_day"></td>
+                        </tr>
+                        <tr>
+                            <td>Fields coverage : </td>
+                            <td id="pub_art_fld"></td>
+                        </tr>
+                        <tr>
+                            <td colspan="2"> Plot of month's publications</td>
+                        </tr>
+                        <tr>
+                            <td id="plot_publ"></td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">Plot of revisions compared to published articles</td>
+                        </tr>
+                        <tr>
+                            <td id="plot_ratio"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </footer>
+    </body>
+</html>
